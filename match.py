@@ -38,7 +38,6 @@ def compare_faces(known_face_encodings, face_encoding_to_check, similarty = 'cos
     if similarty == 'cos':
         
         f = find_face_cosine_distance( known_face_encodings, face_encoding_to_check)
-
         return list(f >= threshold)
     elif similarty == 'euclidean':
         f = find_face_euclidean_distance(known_face_encodings, face_encoding_to_check)
