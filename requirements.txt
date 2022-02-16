@@ -1,4 +1,6 @@
 Augmentor==0.2.9
+dlib==19.23.0
+imutils==0.5.4
 keras==2.8.0
 numpy==1.22.2
 scikit_learn==1.0.2

@@ -6,9 +6,14 @@ from match import compare_faces
 import os 
 import cv2
 import pickle
+import dlib
+from imutils.face_utils.facealigner import FaceAligner
+
+
 
 
 def plot_one_box(x, img, color=None, label=None, line_thickness=3):
+    
     # Plots one bounding box on image img
     tl = line_thickness or round(0.002 * (img.shape[0] + img.shape[1]) / 2) + 1  # line/font thickness
     c1, c2 = (int(x[0]), int(x[1])), (int(x[2]), int(x[3]))
@@ -28,7 +33,10 @@ def encode():
     total = 0
     knownEmbeddings = []
     knownNames = []
+
+    #_________incase of your dataset is not faces only _________
     if face_detection:
+        print("__________run face detection ___________")
         fd = FaceDetector(device = opt.device, conf_threshold = opt.confidence)
         for subdir, dirs, files in os.walk(source):
             print(subdir)
@@ -46,6 +54,8 @@ def encode():
                     embding= em.get_embdings(faceImg= faceimage)
                     knownEmbeddings.append(embding)
                     total += 1
+
+    #_________incase of your dataset is faces only _________
     else :
         for subdir, dirs, files in os.walk(source):
             print(subdir)
@@ -53,35 +63,52 @@ def encode():
             for path, img, _ in dataset:
                 name = path.split(os.path.sep)[-2]
                 knownNames.append(name)
+
                 embding= em.get_embdings(faceImg= img)
                 knownEmbeddings.append(embding)
                 total += 1
+
     # dump the facial embeddings + names to disk
     print("[INFO] serializing {} encodings...".format(total))
     data = {"embeddings": knownEmbeddings, "names": knownNames}
     f = open(saveEncoded, "wb")
     f.write(pickle.dumps(data))
     f.close()
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
+
 
 def recognize():
 
+    #_________initial configrations_______________
     source, saveEncoded =  opt.input,  opt.embeddings
     fd = FaceDetector(device = opt.device, conf_threshold = opt.confidence)
     em = FaceEmbder(device = opt.device, model_name="openface")
     data = pickle.loads(open(saveEncoded, "rb").read())
     dataset = LoadImages(source)
     vid_path, vid_writer = None, None
-    save_path = 'out.mp4'
+    save_path = opt.output
+    predictor ,fa =  None, None
+
+    if opt.aline :
+        predictor = dlib.shape_predictor("models/shape_predictor_68_face_landmarks.dat")
+        fa = FaceAligner(predictor, desiredFaceWidth=256, desiredLeftEye = (0.25,0.25))
+
+
+
     for  path , img, vid_cap in dataset:
         _ , bboxes =  fd.detect_frame(img)
+
         for i in range(len(bboxes)):
             faceimage = img[bboxes[i][1]:bboxes[i][3],bboxes[i][0]:bboxes[i][2]]
             (fH, fW) = faceimage.shape[:2]
             if fW < 20 or fH < 20:
                 continue
-            embding= em.get_embdings(faceImg= faceimage)
+            if opt.aline :
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                dlibRect = dlib.rectangle(bboxes[i][0], bboxes[i][1], bboxes[i][2], bboxes[i][3])
+                faceAligned = fa.align(img, gray, dlibRect) 
+                embding= em.get_embdings(faceImg= faceAligned) 
+            else : 
+                embding= em.get_embdings(faceImg= faceimage)
             matches = compare_faces(data["embeddings"], embding, opt.similarty, opt.similarty_threshold)
             #set name =inknown if no encoding matches
             name = "Unknown"
@@ -105,7 +132,7 @@ def recognize():
         if dataset.mode == 'image':
             cv2.imwrite(save_path, img)
         else:  # 'video'
-            if vid_path != save_path:  # new video
+            if vid_path != save_path:  
                 vid_path = save_path
                 if isinstance(vid_writer, cv2.VideoWriter):
                     vid_writer.release()  # release previous video writer
@@ -121,6 +148,7 @@ def recognize():
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break
     cv2.destroyAllWindows()
+
 if __name__ == '__main__':
     parser = get_recogntion_opt()
     opt = parser.parse_args()

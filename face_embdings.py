@@ -1,7 +1,7 @@
 import cv2
-from vgg import loadModelVGG 
+from models.vgg import loadModelVGG 
 import tensorflow as tf
-from uti import find_input_shape, prepareInput
+from models.uti import find_input_shape, prepareInput
 import numpy as np
 
 class FaceEmbder():

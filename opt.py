@@ -37,6 +37,7 @@ def get_recogntion_opt():
 	    help="similarty function chose cos or euclidean")
     recognize.add_argument("-st", "--similarty_threshold", type=float, default=0.8, 
         help="similarity-threshold for compairing faces to detect unknown class ")
+    recognize.add_argument('-aline', action='store_true')
 
     return parser
 
@@ -44,16 +45,19 @@ def get_recogntion_opt():
 def get_data_prepration_opt():
     # construct the argument parser and parse the arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("-da", "--dataset",required=True,
-    help="path to input directory of faces + images")
-
-    parser.add_argument("-sp", "--save_path",required=True,
-    help="path to output directory of faces + images")
-
     subparser = parser.add_subparsers(dest='command', required=True,
         help="chose command for recognize or encode type test.py /{command/} -h for help")   
     balance = subparser.add_parser('balance')
     create_faces = subparser.add_parser('create_faces')
+    
+    parser.add_argument("-da", "--dataset",required=True,
+    help="path to input directory of faces + images")
+
+
+    balance.add_argument("-sa", "--spamples",type=int ,required=True,
+        help="requred sample number  ")
+
+
 
     create_faces.add_argument("-dm", "--detection-method", type=int, default=0,
         help="face detection model to use: either `0 ofr caffe` or `1 for tensorflow`")
@@ -65,22 +69,24 @@ def get_data_prepration_opt():
     create_faces.add_argument("-pr", "--padding_ratio", type=float, default=0,
 	    help="minimum probability to filter weak detections")
 
-    balance.add_argument("-sa", "--spamples",type=int ,required=True,
-        help="requred sample number  ")
-    balance.add_argument("-rd", "--rotate_degree",type=int , default=7,
-	    help="rotate degree to rotate face ")
+    create_faces.add_argument("-sp", "--save_path",required=True,
+        help="path to output directory of faces + images")
+    create_faces.add_argument('-aline', action='store_true')
+
+
+
 
     return parser
 
 
-def print_options(self, opt):
-    message = ''
-    message += '----------------- Options ---------------\n'
-    for k, v in sorted(vars(opt).items()):
-        comment = ''
-        default = self.parser.get_default(k)
-        if v != default:
-            comment = '\t[default: %s]' % str(default)
-        message += '{:>25}: {:<30}{}\n'.format(str(k), str(v), comment)
-    message += '----------------- End -------------------'
-    print(message)
+# def print_options( opt):
+#     message = ''
+#     message += '----------------- Options ---------------\n'
+#     for k, v in sorted(vars(opt).items()):
+#         comment = ''
+#         default = parser.get_default(k)
+#         if v != default:
+#             comment = '\t[default: %s]' % str(default)
+#         message += '{:>25}: {:<30}{}\n'.format(str(k), str(v), comment)
+#     message += '----------------- End -------------------'
+#     print(message)

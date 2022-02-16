@@ -15,11 +15,16 @@
                 "-i",
                 "input_video.mkv",
                 "-e",
-                "output/embeddings22222222.pickle",
+                "output/encodesingle.pickle",
                 "-st",
                 "0.7",
                 "-ou",
-                "myoutput.mp4"
+                "output/myoutput.mp4",
+                "-si",
+                "cos",
+                "-st",
+                "0.6",
+                "-aline",
 
             ]
         }
