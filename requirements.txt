@@ -1,0 +1,6 @@
+Augmentor==0.2.9
+keras==2.8.0
+numpy==1.22.2
+scikit_learn==1.0.2
+tensorflow==2.8.0
+opencv-python==4.5.5
