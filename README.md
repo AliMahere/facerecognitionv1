@@ -1,5 +1,3 @@
-# AnovatefaceReco
-###### assesment project for hireing process in anovate.ai
 ### to prepare your dataset first run 
 if your dataset doesn't contains only face images and contains whole body you need to run this command first 
 
